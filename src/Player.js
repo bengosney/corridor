@@ -17,8 +17,8 @@ class Player  {
     }
 
     hasWon() {
-	const _x = this.objectives.x | this.x;
-	const _y = this.objectives.y | this.y;
+	const _x = this.objectives.x !== null ? this.objectives.x : this.x;
+	const _y = this.objectives.y !== null ? this.objectives.y : this.y;
 
 	if (_x === this.x && _y === this.y) {
 	    return true;
