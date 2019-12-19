@@ -3,7 +3,14 @@ import PropTypes from 'prop-types';
 
 
 class Player  {
-    constructor(x, y, walls) {
+    constructor(id, x, y, walls) {
+	this.x = x;
+	this.y = y;
+	this.id = id;
+	this.walls = walls;
+    }
+
+    move(x, y) {
 	this.x = x;
 	this.y = y;
     }

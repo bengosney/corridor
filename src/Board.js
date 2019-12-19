@@ -8,7 +8,8 @@ class Board extends Component {
 	super(props);
 
 	const {x = 9, y = 9} = props;
-	const { players = 2 } = props;
+	const { players = 4 } = props;
+	const { walls = 5 } = props;
 
         const emptyBoard = (x, y) => {
             const _x = (x * 2) - 1;
@@ -24,32 +25,35 @@ class Board extends Component {
 		    b[i][j] = imod ? (jmod ? 'e' : 'w') : (jmod ? 'w' : 0);
 		}
 	    }
-
-            const xc = Math.floor(b.length / 2);
-            const yc = Math.floor(b[0].length / 2);
-            const xm = b.length - 1;
-            const ym = b.length - 1;
-            
-            b[xc][0] = 1;
-            b[xm][yc] = 2;
-            b[xc][ym] = 3;
-            b[0][yc] = 4;
-
+           
 	    return b;
 	};
-
-	const playerObjects = [];
-	for (let i = 0; i < players ; i++) {
-	    playerObjects.push(new Player());
-	}
 
         const board = emptyBoard(x, y);
         board[1][2] = 'W';
         board[1][4] = 'W';
+
+	const xc = Math.floor(board.length / 2);
+        const yc = Math.floor(board[0].length / 2);
+        const xm = board.length - 1;
+        const ym = board.length - 1;
+
+	const starts = {
+            1: {x:xc, y:0},
+	    2: {x:xm , y:yc},
+	    3: {x:xc , y:ym},
+	    4: {x:0 , y:yc},
+	}
+	
+	const playerObjects = [];
+	for (let i = 1; i <= players ; i++) {
+	    playerObjects.push(new Player(i, starts[i].x, starts[i].y, walls));
+	}
         
 	this.state = {
 	    board: board,
             curPlayer: 1,
+	    players: playerObjects
 	};
     }
 
@@ -57,38 +61,86 @@ class Board extends Component {
         //this.updateBoard();
     }
 
-    getPos(player) {
-        const { board } = this.state;
-        
-        for (let i = 0; i < board.length; i++) {
-	    for (let j = 0; j < board[i].length; j++) {
-                if (board[i][j] == player) {
-                    return {x: i, y: j};
-                }
-            }
-        }
+    getPlayer(player) {
+	const { players } = this.state;
 
-        return {x: -1, y: -1};
+	
+	return players[player - 1];
+    }
+
+    getCurrentPlayer() {
+	const { curPlayer } = this.state;
+
+	return this.getPlayer(curPlayer);
     }
 
     getMovesFlatArray(player) {
-        const {x, y} = this.getPos(player);
+	const _player = this.getPlayer(player);
+	const { x, y } = _player;
+	
         const { board } = this.state;
         const moves = [];
 
-        if (board[x + 1][y] == 'w') {
+	const canMove = (x, y) => {
+	    if( x < 0 || y < 0) {
+		return false;
+	    }
+
+	    if (x > (board.length - 1) || y > (board[x].length - 1)) {
+		return false;
+	    }
+
+	    return board[x][y] == 'w';
+	}
+	
+        if (canMove(x + 1, y)) {
             moves.push(`${x + 2}:${y}`); 
+        }
+	
+	if (canMove(x - 1, y)) {
+            moves.push(`${x - 2}:${y}`); 
+        }
+
+	if (canMove(x, y + 1)) {
+            moves.push(`${x}:${y + 2}`); 
+        }
+	
+	if (canMove(x, y - 1)) {
+            moves.push(`${x}:${y - 2}`); 
         }
 
         return moves;
     }
 
+    tryMove(x, y) {
+        const { curPlayer, players, board } = this.state;
+
+	const validMoves = this.getMovesFlatArray(curPlayer);
+
+	if (!validMoves.includes(`${x}:${y}`)) {
+	    return false;
+	}
+
+	players[curPlayer - 1].move(x, y);
+	const state = { players: players }
+	
+	if (curPlayer == players.length) {
+	    state.curPlayer = 1;
+	} else {
+	    state.curPlayer = curPlayer + 1;
+	}
+
+	this.setState(state);
+    }
+
     render() {
+	const { curPlayer } = this.state;
+	const playerMap = this.state.players.map((player, index) => `${player.x}:${player.y}`);
+	const moves = this.getMovesFlatArray(curPlayer);
+	console.log(playerMap);
+	
         const getClass = (v, x, y) => {
             const classes = [styles.square];
-            const { curPlayer } = this.state;
-            
-            const moves = this.getMovesFlatArray(curPlayer);
 
             if (curPlayer == v) {
                 classes.push(styles.active);
@@ -102,9 +154,14 @@ class Board extends Component {
                 classes.push(styles.short);
             }
 
-            if (moves.includes(`${x}:${y}`)) {
+            if (moves.includes(`${y}:${x}`)) {
                 classes.push(styles.validmove); 
             }
+
+	    if (playerMap.indexOf(`${y}:${x}`) != -1) {
+		const playerNumber =  playerMap.indexOf(`${y}:${x}`) + 1;
+		classes.push(styles[`player${playerNumber}`]);
+	    }
             
             switch (v) {
             case 'e':
@@ -136,19 +193,16 @@ class Board extends Component {
             return classes.join(' ');
         };
 
-        const nextPlayer = () => {
-            console.log('next player');
-            const { curPlayer } = this.state;
-
-            this.setState({ curPlayer: curPlayer + 1 });
-        };
-        
-        const getElement = (e, row, col) => <div key={row} className={ getClass(e, row, col) } onClick={ (e) => nextPlayer() }>{ e }</div>;
+        const getElement = (e, row, col) => <div key={row} className={ getClass(e, row, col) } onClick={ (e) => this.tryMove(col, row) }>{ e }</div>;
 	const getCol = (col, colIndex) => <div key={colIndex} className={ styles.col }>{ col.map((e, rowIndex) => getElement(e, rowIndex, colIndex)) }</div>;
+
+	const { board } = this.state;
+
+	//this.state.players.map((player, index) => board[player.x][player.y] = player.id);
         
 	return (
 	    <div className={ styles.board }>
-              { this.state.board.map((col, index) => getCol(col, index)) }
+              { board.map((col, index) => getCol(col, index)) }
             </div>
 	);
     }
