@@ -28,6 +28,15 @@ class Player  {
 
 	return false;
     }
+
+    useWall() {
+	if (this.walls > 0) {
+	    this.walls--;
+	    return true;
+	}
+
+	return false;
+    }
 }
 
 export default Player;

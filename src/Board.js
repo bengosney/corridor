@@ -114,22 +114,12 @@ class Board extends Component {
         return moves;
     }
 
-    tryMove(x, y) {
-        const { curPlayer, players } = this.state;
-
-	const validMoves = this.getMovesFlatArray(curPlayer);
-
-	if (!validMoves.includes(`${x}:${y}`)) {
-	    return false;
-	}
-
-	players[curPlayer - 1].move(x, y);
-
-	return true;
-    }
-
     tryTurn(x, y) {
-	const { curPlayer, players } = this.state;
+	const { curPlayer, players, winner } = this.state;
+
+	if (winner !== null) {
+	    return;
+	}
 	
 	const state = { players: players };
 
@@ -150,10 +140,24 @@ class Board extends Component {
 	this.setState(state);
     }
 
-    tryWall(x, y) {
-	const { board } = this.state;
+    tryMove(x, y) {
+        const { curPlayer, players } = this.state;
 
-	if (board[x][y] === 'w') {
+	const validMoves = this.getMovesFlatArray(curPlayer);
+
+	if (!validMoves.includes(`${x}:${y}`)) {
+	    return false;
+	}
+
+	players[curPlayer - 1].move(x, y);
+
+	return true;
+    }
+
+    tryWall(x, y) {
+	const { curPlayer, players, board } = this.state;
+
+	if (board[x][y] === 'w' && players[curPlayer - 1].useWall()) {
 	    board[x][y] = 'W';
 	    this.setState({ board: board });
 
@@ -186,7 +190,7 @@ class Board extends Component {
 	    if (playerMap.indexOf(`${y}:${x}`) !== -1) {
 		const playerNumber =  playerMap.indexOf(`${y}:${x}`) + 1;
 		classes.push(styles[`player${playerNumber}`]);
-                if (curPlayer == playerNumber) {
+                if (curPlayer === playerNumber) {
                     classes.push(styles.active);
                 }
 	    }
