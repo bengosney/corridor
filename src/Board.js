@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+//import PropTypes from 'prop-types';
 import Player from './Player';
 import styles from './Board.module.scss';
 
@@ -33,27 +33,39 @@ class Board extends Component {
         board[1][2] = 'W';
         board[1][4] = 'W';
 
-	const xc = Math.floor(board.length / 2);
-        const yc = Math.floor(board[0].length / 2);
-        const xm = board.length - 1;
-        const ym = board.length - 1;
-
 	const starts = {
-            1: {x:xc, y:0},
-	    2: {x:xm , y:yc},
-	    3: {x:xc , y:ym},
-	    4: {x:0 , y:yc},
-	}
+            1: {x:Math.floor(board.length / 2), y:0},
+	    2: {x:board.length - 1 , y:Math.floor(board[0].length / 2)},
+	    3: {x:Math.floor(board.length / 2) , y:board[0].length - 1},
+	    4: {x:0 , y:Math.floor(board[0].length / 2)},
+	};
+
+	const makeWins = (x, y) => {
+	    const w = [];
+	    for (let i = 0; i < board.length; i++) {
+		w.push({x: x || i, y: y || i});
+	    }
+
+	    return w;
+	};
 	
+	const wins = {
+	    1: {x: null, y: board[0].length - 1},
+	    2: {x: 0, y: null},
+	    3: {x: null, y: 0},
+	    4: {x: board.length - 1, y: null},
+	};
+
 	const playerObjects = [];
 	for (let i = 1; i <= players ; i++) {
-	    playerObjects.push(new Player(i, starts[i].x, starts[i].y, walls));
+	    playerObjects.push(new Player(i, starts[i].x, starts[i].y, walls, wins[i]));
 	}
         
 	this.state = {
 	    board: board,
             curPlayer: 1,
-	    players: playerObjects
+	    players: playerObjects,
+	    winner: null
 	};
     }
 
@@ -90,8 +102,8 @@ class Board extends Component {
 		return false;
 	    }
 
-	    return board[x][y] == 'w';
-	}
+	    return board[x][y] === 'w';
+	};
 	
         if (canMove(x + 1, y)) {
             moves.push(`${x + 2}:${y}`); 
@@ -113,38 +125,37 @@ class Board extends Component {
     }
 
     tryMove(x, y) {
-        const { curPlayer, players, board } = this.state;
+        const { curPlayer, players } = this.state;
 
 	const validMoves = this.getMovesFlatArray(curPlayer);
 
 	if (!validMoves.includes(`${x}:${y}`)) {
-	    return false;
+	    return;
 	}
 
 	players[curPlayer - 1].move(x, y);
-	const state = { players: players }
+	const state = { players: players };
 	
-	if (curPlayer == players.length) {
+	if (curPlayer === players.length) {
 	    state.curPlayer = 1;
 	} else {
 	    state.curPlayer = curPlayer + 1;
+	}
+
+	if (players[curPlayer - 1].hasWon()) {
+	    state.winner = players[curPlayer - 1];
 	}
 
 	this.setState(state);
     }
 
     render() {
-	const { curPlayer } = this.state;
+	const { curPlayer, winner, board } = this.state;
 	const playerMap = this.state.players.map((player, index) => `${player.x}:${player.y}`);
 	const moves = this.getMovesFlatArray(curPlayer);
-	console.log(playerMap);
 	
         const getClass = (v, x, y) => {
             const classes = [styles.square];
-
-            if (curPlayer == v) {
-                classes.push(styles.active);
-            }
 
             if (x % 2) {
                 classes.push(styles.narrow);
@@ -158,9 +169,12 @@ class Board extends Component {
                 classes.push(styles.validmove); 
             }
 
-	    if (playerMap.indexOf(`${y}:${x}`) != -1) {
+	    if (playerMap.indexOf(`${y}:${x}`) !== -1) {
 		const playerNumber =  playerMap.indexOf(`${y}:${x}`) + 1;
 		classes.push(styles[`player${playerNumber}`]);
+                if (curPlayer == playerNumber) {
+                    classes.push(styles.active);
+                }
 	    }
             
             switch (v) {
@@ -173,18 +187,6 @@ class Board extends Component {
             case 'W':
                 classes.push(styles.wall);
                 break;
-            case 1:
-                classes.push(styles.player1);
-                break;
-            case 2:
-                classes.push(styles.player2);
-                break;
-            case 3:
-                classes.push(styles.player3);
-                break;
-            case 4:
-                classes.push(styles.player4);
-                break;
             default:
                 classes.push(styles.empty);
                 break;
@@ -196,13 +198,16 @@ class Board extends Component {
         const getElement = (e, row, col) => <div key={row} className={ getClass(e, row, col) } onClick={ (e) => this.tryMove(col, row) }>{ e }</div>;
 	const getCol = (col, colIndex) => <div key={colIndex} className={ styles.col }>{ col.map((e, rowIndex) => getElement(e, rowIndex, colIndex)) }</div>;
 
-	const { board } = this.state;
+	const won = winner ? (<div>{`Player ${winner.id} is the Winner`}</div>) : null;
 
 	//this.state.players.map((player, index) => board[player.x][player.y] = player.id);
         
 	return (
-	    <div className={ styles.board }>
-              { board.map((col, index) => getCol(col, index)) }
+            <div>
+	      <div className={ styles.board }>
+                { board.map((col, index) => getCol(col, index)) }
+              </div>
+              { won }
             </div>
 	);
     }
