@@ -39,15 +39,6 @@ class Board extends Component {
 	    3: {x:Math.floor(board.length / 2) , y:board[0].length - 1},
 	    4: {x:0 , y:Math.floor(board[0].length / 2)},
 	};
-
-	const makeWins = (x, y) => {
-	    const w = [];
-	    for (let i = 0; i < board.length; i++) {
-		w.push({x: x || i, y: y || i});
-	    }
-
-	    return w;
-	};
 	
 	const wins = {
 	    1: {x: null, y: board[0].length - 1},
@@ -75,7 +66,6 @@ class Board extends Component {
 
     getPlayer(player) {
 	const { players } = this.state;
-
 	
 	return players[player - 1];
     }
@@ -130,11 +120,22 @@ class Board extends Component {
 	const validMoves = this.getMovesFlatArray(curPlayer);
 
 	if (!validMoves.includes(`${x}:${y}`)) {
-	    return;
+	    return false;
 	}
 
 	players[curPlayer - 1].move(x, y);
+
+	return true;
+    }
+
+    tryTurn(x, y) {
+	const { curPlayer, players } = this.state;
+	
 	const state = { players: players };
+
+	if (!this.tryMove(x,y) && !this.tryWall(x,y)) {
+	    return;
+	}
 	
 	if (curPlayer === players.length) {
 	    state.curPlayer = 1;
@@ -147,6 +148,19 @@ class Board extends Component {
 	}
 
 	this.setState(state);
+    }
+
+    tryWall(x, y) {
+	const { board } = this.state;
+
+	if (board[x][y] === 'w') {
+	    board[x][y] = 'W';
+	    this.setState({ board: board });
+
+	    return true;
+	}
+
+	return false;
     }
 
     render() {
@@ -195,12 +209,10 @@ class Board extends Component {
             return classes.join(' ');
         };
 
-        const getElement = (e, row, col) => <div key={row} className={ getClass(e, row, col) } onClick={ (e) => this.tryMove(col, row) }>{ e }</div>;
+        const getElement = (e, row, col) => <div key={row} className={ getClass(e, row, col) } onClick={ (e) => this.tryTurn(col, row) }>{ e }</div>;
 	const getCol = (col, colIndex) => <div key={colIndex} className={ styles.col }>{ col.map((e, rowIndex) => getElement(e, rowIndex, colIndex)) }</div>;
 
 	const won = winner ? (<div>{`Player ${winner.id} is the Winner`}</div>) : null;
-
-	//this.state.players.map((player, index) => board[player.x][player.y] = player.id);
         
 	return (
             <div>
