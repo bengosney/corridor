@@ -162,10 +162,11 @@ class Board extends Component {
 	const { curPlayer, players, board } = this.state;
 
 	if (board[x][y] === 'w' && players[curPlayer - 1].useWall()) {
-            this.getSelectedWalls().map(w => board[w.y][w.x] = 'W');
+            const selectedWalls = this.getSelectedWalls();
+	    selectedWalls.map(w => board[w.y][w.x] = 'W');
 	    this.setState({ board: board });
 
-	    return true;
+	    return selectedWalls.length == 3;
 	}
 
 	return false;
