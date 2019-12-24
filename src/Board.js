@@ -128,7 +128,6 @@ class Board extends Component {
 	}
 
 	const otherPositions = players.map(player => player.id !== curPlayer ? `${player.x}|${player.y}` : '');
-	console.log(otherPositions);
 
 	if (!otherPositions.includes(`${players[curPlayer - 1].x}|${players[curPlayer - 1].y}`)) {
 	    if (curPlayer === players.length) {
@@ -193,22 +192,22 @@ class Board extends Component {
             add(x, y);
             
 	    if (x % 2) {
-		if (wallHover.n === 1) {
+		if (n === 1) {
                     add(x, y - 1);
                     add(x, y - 2);
 		}
 
-		if (wallHover.n === 2) {
+		if (n === 2) {
                     add(x, y + 1);
                     add(x, y + 2);
 		}
 	    } else {
-		if (wallHover.n === 1) {
+		if (n === 1) {
                     add(x - 1, y);
                     add(x - 2, y);
 		}
 
-		if (wallHover.n === 2) {
+		if (n === 2) {
                     add(x + 1, y);
                     add(x + 2, y);
 		}
