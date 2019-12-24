@@ -25,13 +25,11 @@ class Board extends Component {
 		    b[i][j] = imod ? (jmod ? 'e' : 'w') : (jmod ? 'w' : 0);
 		}
 	    }
-           
+            
 	    return b;
 	};
 
         const board = emptyBoard(x, y);
-        board[1][2] = 'W';
-        board[1][4] = 'W';
 
 	const starts = {
             1: {x:Math.floor(board.length / 2), y:0},
@@ -56,7 +54,9 @@ class Board extends Component {
 	    board: board,
             curPlayer: 1,
 	    players: playerObjects,
-	    winner: null
+	    winner: null,
+            walls: [],
+            wallHover: null,
 	};
     }
 
@@ -126,11 +126,16 @@ class Board extends Component {
 	if (!this.tryMove(x,y) && !this.tryWall(x,y)) {
 	    return;
 	}
-	
-	if (curPlayer === players.length) {
-	    state.curPlayer = 1;
-	} else {
-	    state.curPlayer = curPlayer + 1;
+
+	const otherPositions = players.map(player => player.id !== curPlayer ? `${player.x}|${player.y}` : '');
+	console.log(otherPositions);
+
+	if (!otherPositions.includes(`${players[curPlayer - 1].x}|${players[curPlayer - 1].y}`)) {
+	    if (curPlayer === players.length) {
+		state.curPlayer = 1;
+	    } else {
+		state.curPlayer = curPlayer + 1;
+	    }
 	}
 
 	if (players[curPlayer - 1].hasWon()) {
@@ -158,7 +163,7 @@ class Board extends Component {
 	const { curPlayer, players, board } = this.state;
 
 	if (board[x][y] === 'w' && players[curPlayer - 1].useWall()) {
-	    board[x][y] = 'W';
+            this.getSelectedWalls().map(w => board[w.y][w.x] = 'W');
 	    this.setState({ board: board });
 
 	    return true;
@@ -167,10 +172,58 @@ class Board extends Component {
 	return false;
     }
 
+    getSelectedWalls() {
+        const { wallHover, board } = this.state;
+
+        const selected = [];
+        
+        if (wallHover !== null) {
+            const { x, y, n } = wallHover;
+
+            const add = (x, y) => {
+                try {
+                    if (board[y][x] !== 'W') {
+                        selected.push({x:x , y:y});
+                    }
+                } catch(e) {
+                    
+                }
+            };
+            
+            add(x, y);
+            
+	    if (x % 2) {
+		if (wallHover.n === 1) {
+                    add(x, y - 1);
+                    add(x, y - 2);
+		}
+
+		if (wallHover.n === 2) {
+                    add(x, y + 1);
+                    add(x, y + 2);
+		}
+	    } else {
+		if (wallHover.n === 1) {
+                    add(x - 1, y);
+                    add(x - 2, y);
+		}
+
+		if (wallHover.n === 2) {
+                    add(x + 1, y);
+                    add(x + 2, y);
+		}
+	    }
+        }
+
+        return selected.length === 3 ? selected : [];
+    }
+
     render() {
 	const { curPlayer, winner, board } = this.state;
 	const playerMap = this.state.players.map((player, index) => `${player.x}:${player.y}`);
 	const moves = this.getMovesFlatArray(curPlayer);
+
+        const selectedWalls = this.getSelectedWalls().map(w => `${w.x}|${w.y}`);
 	
         const getClass = (v, x, y) => {
             const classes = [styles.square];
@@ -190,6 +243,7 @@ class Board extends Component {
 	    if (playerMap.indexOf(`${y}:${x}`) !== -1) {
 		const playerNumber =  playerMap.indexOf(`${y}:${x}`) + 1;
 		classes.push(styles[`player${playerNumber}`]);
+		
                 if (curPlayer === playerNumber) {
                     classes.push(styles.active);
                 }
@@ -201,6 +255,18 @@ class Board extends Component {
                 break;
             case 'w':
                 classes.push(styles.emptyWall);
+                if (x % 2) {
+                    classes.push(styles.horz);
+                } else {
+                    classes.push(styles.vert);
+                }
+
+                if (selectedWalls.length) {                    
+                    if (selectedWalls.indexOf(`${x}|${y}`) !== -1) {
+                        classes.push(styles.hover);
+                    }
+                }
+                                
                 break;
             case 'W':
                 classes.push(styles.wall);
@@ -213,7 +279,27 @@ class Board extends Component {
             return classes.join(' ');
         };
 
-        const getElement = (e, row, col) => <div key={row} className={ getClass(e, row, col) } onClick={ (e) => this.tryTurn(col, row) }>{ e }</div>;
+
+        // const getWallBuilderClass = (e, row, c) => [c, row % 2 ? styles.horz : styles.vert].join(' ');
+
+        const setEnter = (row, col, n) => this.setState({ wallHover: {x: row, y: col, n: n} });
+        const setLeave = (row, col, n) => {
+            const { wallHover } = this.state;
+            if (wallHover !== null && row === wallHover.x && col === wallHover.y) {
+                this.setState({ wallHover: null });
+            }
+        };
+
+        const getEmptyWall = (row, col) => {
+            return (
+                <React.Fragment>
+                  <div className={ styles.w1 } onPointerEnter={() => setEnter(row, col, 1) } onPointerLeave={ () => setLeave(row, col, 1) }>w1</div>
+                  <div className={ styles.w2 } onPointerEnter={() => setEnter(row, col, 2) } onPointerLeave={ () => setLeave(row, col, 2) }>w2</div>
+                </React.Fragment>
+            );
+        };
+	const getContent = (e, row, col) => e === 'w' ? getEmptyWall(row, col) : e;
+        const getElement = (e, row, col) => <div key={row} className={ getClass(e, row, col) }  onClick={ (e) => this.tryTurn(col, row) }>{ getContent(e, row, col) }</div>;
 	const getCol = (col, colIndex) => <div key={colIndex} className={ styles.col }>{ col.map((e, rowIndex) => getElement(e, rowIndex, colIndex)) }</div>;
 
 	const won = winner ? (<div>{`Player ${winner.id} is the Winner`}</div>) : null;
