@@ -5,10 +5,10 @@ import Board from './Board.js';
 
 function App() {
     return (
-	<div className="App">
-	  <p>Game</p>
-          <Board />
-	</div>
+        <div className="App">
+            <p>Game</p>
+            <Board />
+        </div>
     );
 }
 
