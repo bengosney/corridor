@@ -47,9 +47,7 @@ class Board extends Component {
 
         const playerObjects = [];
         for (let i = 1; i <= players; i++) {
-            playerObjects.push(
-                new Player(i, starts[i].x, starts[i].y, walls, wins[i])
-            );
+            playerObjects.push(new Player(i, starts[i].x, starts[i].y, walls, wins[i]));
         }
 
         this.state = {
@@ -129,15 +127,9 @@ class Board extends Component {
             return;
         }
 
-        const otherPositions = players.map(player =>
-            player.id !== curPlayer ? `${player.x}|${player.y}` : ''
-        );
+        const otherPositions = players.map(player => (player.id !== curPlayer ? `${player.x}|${player.y}` : ''));
 
-        if (
-            !otherPositions.includes(
-                `${players[curPlayer - 1].x}|${players[curPlayer - 1].y}`
-            )
-        ) {
+        if (!otherPositions.includes(`${players[curPlayer - 1].x}|${players[curPlayer - 1].y}`)) {
             if (curPlayer === players.length) {
                 state.curPlayer = 1;
             } else {
@@ -174,7 +166,7 @@ class Board extends Component {
             selectedWalls.map(w => (board[w.y][w.x] = 'W'));
             this.setState({ board: board });
 
-            return selectedWalls.length == 3;
+            return selectedWalls.length === 3;
         }
 
         return false;
@@ -226,9 +218,7 @@ class Board extends Component {
 
     render() {
         const { curPlayer, winner, board } = this.state;
-        const playerMap = this.state.players.map(
-            (player, index) => `${player.x}:${player.y}`
-        );
+        const playerMap = this.state.players.map((player, index) => `${player.x}:${player.y}`);
         const moves = this.getMovesFlatArray(curPlayer);
 
         const selectedWalls = this.getSelectedWalls().map(w => `${w.x}|${w.y}`);
@@ -289,15 +279,10 @@ class Board extends Component {
 
         // const getWallBuilderClass = (e, row, c) => [c, row % 2 ? styles.horz : styles.vert].join(' ');
 
-        const setEnter = (row, col, n) =>
-            this.setState({ wallHover: { x: row, y: col, n: n } });
+        const setEnter = (row, col, n) => this.setState({ wallHover: { x: row, y: col, n: n } });
         const setLeave = (row, col, n) => {
             const { wallHover } = this.state;
-            if (
-                wallHover !== null &&
-                row === wallHover.x &&
-                col === wallHover.y
-            ) {
+            if (wallHover !== null && row === wallHover.x && col === wallHover.y) {
                 this.setState({ wallHover: null });
             }
         };
@@ -305,31 +290,18 @@ class Board extends Component {
         const getEmptyWall = (row, col) => {
             return (
                 <React.Fragment>
-                    <div
-                        className={styles.w1}
-                        onPointerEnter={() => setEnter(row, col, 1)}
-                        onPointerLeave={() => setLeave(row, col, 1)}
-                    >
+                    <div className={styles.w1} onPointerEnter={() => setEnter(row, col, 1)} onPointerLeave={() => setLeave(row, col, 1)}>
                         w1
                     </div>
-                    <div
-                        className={styles.w2}
-                        onPointerEnter={() => setEnter(row, col, 2)}
-                        onPointerLeave={() => setLeave(row, col, 2)}
-                    >
+                    <div className={styles.w2} onPointerEnter={() => setEnter(row, col, 2)} onPointerLeave={() => setLeave(row, col, 2)}>
                         w2
                     </div>
                 </React.Fragment>
             );
         };
-        const getContent = (e, row, col) =>
-            e === 'w' ? getEmptyWall(row, col) : e;
+        const getContent = (e, row, col) => (e === 'w' ? getEmptyWall(row, col) : e);
         const getElement = (e, row, col) => (
-            <div
-                key={row}
-                className={getClass(e, row, col)}
-                onClick={e => this.tryTurn(col, row)}
-            >
+            <div key={row} className={getClass(e, row, col)} onClick={e => this.tryTurn(col, row)}>
                 {getContent(e, row, col)}
             </div>
         );
@@ -339,15 +311,11 @@ class Board extends Component {
             </div>
         );
 
-        const won = winner ? (
-            <div>{`Player ${winner.id} is the Winner`}</div>
-        ) : null;
+        const won = winner ? <div>{`Player ${winner.id} is the Winner`}</div> : null;
 
         return (
             <div>
-                <div className={styles.board}>
-                    {board.map((col, index) => getCol(col, index))}
-                </div>
+                <div className={styles.board}>{board.map((col, index) => getCol(col, index))}</div>
                 {won}
             </div>
         );
