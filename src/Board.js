@@ -136,9 +136,7 @@ class Board extends Component {
             state.jump = { x: fromx, y: fromy };
         } else {
             state.jump = null;
-            console.log(jump, x, y);
             const undoJump = jump && jump.x === x && jump.y === y;
-            console.log(undoJump);
             if (!undoJump) {
                 //end of turn
                 if (curPlayer === players.length) {
