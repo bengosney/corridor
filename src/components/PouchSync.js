@@ -10,7 +10,7 @@ function PouchSync({ remoteAddress, children }) {
 
     db.sync(remote, { live: true });
 
-    return (<>{children}</>);
+    return <>{children}</>;
 }
 
 export default PouchSync;

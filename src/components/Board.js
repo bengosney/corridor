@@ -207,8 +207,7 @@ class Board extends Component {
                     if (board[y][x] !== 'W') {
                         selected.push({ x: x, y: y });
                     }
-                } catch (e) {
-                }
+                } catch (e) {}
             };
 
             add(x, y);
@@ -313,12 +312,10 @@ class Board extends Component {
         const getEmptyWall = (row, col) => {
             return (
                 <React.Fragment>
-                    <div className={styles.w1} onPointerEnter={() => setEnter(row, col, 1)}
-                         onPointerLeave={() => setLeave(row, col, 1)}>
+                    <div className={styles.w1} onPointerEnter={() => setEnter(row, col, 1)} onPointerLeave={() => setLeave(row, col, 1)}>
                         w1
                     </div>
-                    <div className={styles.w2} onPointerEnter={() => setEnter(row, col, 2)}
-                         onPointerLeave={() => setLeave(row, col, 2)}>
+                    <div className={styles.w2} onPointerEnter={() => setEnter(row, col, 2)} onPointerLeave={() => setLeave(row, col, 2)}>
                         w2
                     </div>
                 </React.Fragment>

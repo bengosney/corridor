@@ -5,12 +5,11 @@ import PropTypes from 'prop-types';
 import Board from './Board';
 import { GameType } from '../dataTypes';
 
-
 const GetGame = ({ gameID }) => {
     const db = useDB();
     const gameState = useGet({ id: gameID });
 
-    return (<Board db={db} gameID={gameID} {...gameState} />);
+    return <Board db={db} gameID={gameID} {...gameState} />;
 };
 
 const Game = () => {
@@ -25,15 +24,14 @@ const Game = () => {
                     <button onClick={() => db.post(GameType).then(doc => setGameID(doc.id))}>Start a new game</button>
                 </p>
                 <p>
-                    <input value={inputGameID} onChange={e => setInputGameID(e.target.value)}/>
+                    <input value={inputGameID} onChange={e => setInputGameID(e.target.value)} />
                     <button onClick={() => setGameID(inputGameID)}>Join a game</button>
                 </p>
             </div>
         );
     }
 
-    return (<GetGame gameID={gameID}/>);
+    return <GetGame gameID={gameID} />;
 };
-
 
 export default Game;

@@ -36,7 +36,7 @@ function App() {
             <PouchDB name="dbname">
                 <PouchSync remoteAddress={'http://user:pass@localhost:5984/dbname'}>
                     <Suspense fallback="loading...">
-                        <Game/>
+                        <Game />
                     </Suspense>
                 </PouchSync>
             </PouchDB>
