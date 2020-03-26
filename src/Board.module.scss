@@ -4,113 +4,133 @@
     justify-content: center;
 }
 
+$players: ("1": #f52e2e, "2": #5463ff, "3": #ffc717, "4": #1f9e40);
+
+.boardInner {
+  display: inline-block;
+  @each $id, $colour in $players {
+    @if $id == "1" {
+      border-bottom: 5px solid $colour;
+    }
+    @if $id == "2" {
+      border-left: 5px solid $colour;
+    }
+    @if $id == "3" {
+      border-top: 5px solid $colour;
+    }
+    @if $id == "4" {
+      border-right: 5px solid $colour;
+    }
+  }
+}
+
 .col {
-    
+
 }
 
 $size: 3em;
 
 .square {
-    display: block;
-    height: $size;
-    width: $size;
-    text-indent: -99999px;
+  display: block;
+  height: $size;
+  width: $size;
+  text-indent: -99999px;
 }
 
 .narrow {
-    height: $size / 4;
+  height: $size / 4;
 }
 
 .short {
-    width: $size / 4;
+  width: $size / 4;
 }
 
 .nothing {
-    background: white;
+  background: white;
 }
 
 .emptyWall {
-    background: lightgray;
-    display: flex;
+  background: lightgray;
+  display: flex;
 
-    &.hover {
-	background: pink;
-    }
+  &.hover {
+    background: pink;
+  }
 }
 
 .horz {
-    .w1, .w2 {
-	width: 50%;
-	height: 100%;
-    }
-    flex-direction: row;
+  .w1, .w2 {
+    width: 50%;
+    height: 100%;
+  }
+
+  flex-direction: row;
 }
 
 .vert {
-    .w1, .w2 {
-	width: 100%;
-	height: 50%;
-    }
-    flex-direction: column;
+  .w1, .w2 {
+    width: 100%;
+    height: 50%;
+  }
+
+  flex-direction: column;
 }
 
 .w1 {
-    //background: red;
+  //background: red;
 }
 
 .w2 {
-    //background: blue;
+  //background: blue;
 }
 
 .wall {
-    background: black;
+  background: black;
 }
 
 $pulseTime: 1.5s;
 $emptyColour: #4a4559;
 .empty {
-    background: $emptyColour;
+  background: $emptyColour;
 }
 
 .validmove {
-    //background: pink !important;
-    animation: pulse-move $pulseTime infinite;
+  //background: pink !important;
+  animation: pulse-move $pulseTime infinite;
 }
 
 $pulseMoveColour: lighten($emptyColour, 50%);
 @keyframes pulse-move {
-    0% {
-	box-shadow: inset 0 0 0 0 rgba($pulseMoveColour, 1);
-    }
-    70% {
-	box-shadow: inset 0 0 0 10px rgba($pulseMoveColour, 0);
-    }
-    100% {
-	box-shadow: inset 0 0 0 0 rgba($pulseMoveColour, 0);
-    }
-}    
-
-$players: ("1": #f52e2e, "2": #5463ff, "3": #ffc717, "4": #1f9e40);
+  0% {
+    box-shadow: inset 0 0 0 0 rgba($pulseMoveColour, 1);
+  }
+  70% {
+    box-shadow: inset 0 0 0 10px rgba($pulseMoveColour, 0);
+  }
+  100% {
+    box-shadow: inset 0 0 0 0 rgba($pulseMoveColour, 0);
+  }
+}
 
 @each $id, $colour in $players {
-    $pulseColour: darken($colour, 50%);
-    .player#{$id} {
-	background: $colour;
+  $pulseColour: darken($colour, 50%);
+  .player#{$id} {
+    background: $colour;
 
-	&.active {
-	    animation: pulse#{$id} $pulseTime infinite;
-	}	
+    &.active {
+      animation: pulse#{$id} $pulseTime infinite;
     }
+  }
 
-    @keyframes pulse#{$id} {
-	0% {
-	    box-shadow: inset 0 0 0 0 rgba($pulseColour, 1);
-	}
-	70% {
-	    box-shadow: inset 0 0 0 10px rgba($pulseColour, 0);
-	}
-	100% {
-	    box-shadow: inset 0 0 0 0 rgba($pulseColour, 0);
-	}
-    }    
+  @keyframes pulse#{$id} {
+    0% {
+      box-shadow: inset 0 0 0 0 rgba($pulseColour, 1);
+    }
+    70% {
+      box-shadow: inset 0 0 0 10px rgba($pulseColour, 0);
+    }
+    100% {
+      box-shadow: inset 0 0 0 0 rgba($pulseColour, 0);
+    }
+  }
 }
