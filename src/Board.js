@@ -54,6 +54,7 @@ class Board extends Component {
             board: board,
             curPlayer: 1,
             players: playerObjects,
+            jump: null,
             winner: null,
             walls: [],
             wallHover: null,
@@ -115,25 +116,34 @@ class Board extends Component {
     }
 
     tryTurn(x, y) {
-        const { curPlayer, players, winner } = this.state;
+        const { curPlayer, players, winner, jump } = this.state;
 
         if (winner !== null) {
             return;
         }
 
         const state = { players: players };
+        const _player = this.getPlayer(curPlayer);
+        const { x: fromx, y: fromy } = _player;
 
         if (!this.tryMove(x, y) && !this.tryWall(x, y)) {
             return;
         }
 
         const otherPositions = players.map(player => (player.id !== curPlayer ? `${player.x}|${player.y}` : ''));
-
-        if (!otherPositions.includes(`${players[curPlayer - 1].x}|${players[curPlayer - 1].y}`)) {
-            if (curPlayer === players.length) {
-                state.curPlayer = 1;
-            } else {
-                state.curPlayer = curPlayer + 1;
+        const newJump = otherPositions.includes(`${players[curPlayer - 1].x}|${players[curPlayer - 1].y}`);
+        if (newJump) {
+            state.jump = { x: fromx, y: fromy };
+        } else {
+            state.jump = null;
+            const undoJump = jump && jump.x === x && jump.y === y;
+            if (!undoJump) {
+                //end of turn
+                if (curPlayer === players.length) {
+                    state.curPlayer = 1;
+                } else {
+                    state.curPlayer = curPlayer + 1;
+                }
             }
         }
 
@@ -159,7 +169,11 @@ class Board extends Component {
     }
 
     tryWall(x, y) {
-        const { curPlayer, players, board } = this.state;
+        const { curPlayer, players, board, jump } = this.state;
+
+        if (jump) {
+            return false;
+        }
 
         if (board[x][y] === 'w' && players[curPlayer - 1].useWall()) {
             const selectedWalls = this.getSelectedWalls();
