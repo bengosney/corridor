@@ -1,15 +1,18 @@
 import React, { Component } from 'react';
-//import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import Player from './Player';
-import styles from './Board.module.scss';
+import styles from '../Board.module.scss';
+import { GameType } from '../dataTypes';
 
 class Board extends Component {
     constructor(props) {
         super(props);
 
         const { x = 9, y = 9 } = props;
-        const { players = 4 } = props;
+        const { playerCount = 4 } = props;
         const { walls = 5 } = props;
+
+        const { gameID = '' } = props;
 
         const emptyBoard = (x, y) => {
             const _x = x * 2 - 1;
@@ -46,13 +49,13 @@ class Board extends Component {
         };
 
         const playerObjects = [];
-        for (let i = 1; i <= players; i++) {
+        for (let i = 1; i <= playerCount; i++) {
             playerObjects.push(new Player(i, starts[i].x, starts[i].y, walls, wins[i]));
         }
 
         this.state = {
-            board: board,
-            curPlayer: 1,
+            board: /*props.board ||*/ board,
+            curPlayer: props.curPlayer || 1,
             players: playerObjects,
             jump: null,
             winner: null,
@@ -61,8 +64,13 @@ class Board extends Component {
         };
     }
 
-    componentDidMount() {
-        //this.updateBoard();
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        const { gameID = '' } = this.props;
+        const { state } = this;
+
+        state._id = gameID;
+
+        this.props.db.upsert(gameID, () => state);
     }
 
     getPlayer(player) {
@@ -199,7 +207,8 @@ class Board extends Component {
                     if (board[y][x] !== 'W') {
                         selected.push({ x: x, y: y });
                     }
-                } catch (e) {}
+                } catch (e) {
+                }
             };
 
             add(x, y);
@@ -304,10 +313,12 @@ class Board extends Component {
         const getEmptyWall = (row, col) => {
             return (
                 <React.Fragment>
-                    <div className={styles.w1} onPointerEnter={() => setEnter(row, col, 1)} onPointerLeave={() => setLeave(row, col, 1)}>
+                    <div className={styles.w1} onPointerEnter={() => setEnter(row, col, 1)}
+                         onPointerLeave={() => setLeave(row, col, 1)}>
                         w1
                     </div>
-                    <div className={styles.w2} onPointerEnter={() => setEnter(row, col, 2)} onPointerLeave={() => setLeave(row, col, 2)}>
+                    <div className={styles.w2} onPointerEnter={() => setEnter(row, col, 2)}
+                         onPointerLeave={() => setLeave(row, col, 2)}>
                         w2
                     </div>
                 </React.Fragment>
@@ -329,6 +340,7 @@ class Board extends Component {
 
         return (
             <div className={ styles.boardInner}>
+                <p>Game ID: {this.props.gameID}</p>
                 <div className={styles.board}>{board.map((col, index) => getCol(col, index))}</div>
                 {won}
             </div>

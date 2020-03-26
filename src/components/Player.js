@@ -20,13 +20,7 @@ class Player {
         const _x = this.objectives.x !== null ? this.objectives.x : this.x;
         const _y = this.objectives.y !== null ? this.objectives.y : this.y;
 
-        if (_x === this.x && _y === this.y) {
-            return true;
-        }
-
-        console.log(this.id, this.x, this.y, this.objectives);
-
-        return false;
+        return _x === this.x && _y === this.y;
     }
 
     useWall() {
