@@ -282,7 +282,7 @@ class Board extends Component {
         const { curPlayer, winner, board, playing } = this.state;
 
         if (!playing) {
-            return <div>Loading game state</div>
+            return <div>Loading game state</div>;
         }
 
         const playerMap = this.state.players.map((player, index) => `${player.x}:${player.y}`);
@@ -379,9 +379,11 @@ class Board extends Component {
         const won = winner ? <div>{`Player ${winner.id} is the Winner`}</div> : null;
 
         return (
-            <div className={styles.boardInner}>
+            <div>
                 <p>Game ID: {this.props.gameID}</p>
-                <div className={styles.board}>{board.map((col, index) => getCol(col, index))}</div>
+                <div className={styles.boardInner}>
+                    <div className={styles.board}>{board.map((col, index) => getCol(col, index))}</div>
+                </div>
                 {won}
             </div>
         );
