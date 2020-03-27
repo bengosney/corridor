@@ -67,6 +67,7 @@ class Board extends Component {
             winner: null,
             walls: [],
             wallHover: null,
+            playing: false,
         };
 
         const updateState = (doc) => {
@@ -74,11 +75,14 @@ class Board extends Component {
 
             const state = {
                 board: doc.board,
+                playing: true,
             };
 
             if (doc.players) {
-                state['players'] = doc.players.map(p => new Player({ ...p }));
+                state['players'] = doc.players.map(p => new Player(p.id, p.x, p.y, p.walls, p.objectives));
             }
+
+            state['curPlayer'] = doc.curPlayer || 1;
 
             this.setState(state);
         };
@@ -94,18 +98,10 @@ class Board extends Component {
         }).on('error', console.log.bind(console));
     }
 
-    updateBoard(board) {
+    updateState(state) {
         localDB.upsert(this.props.gameID, (doc) => {
-            console.log('updateBoard', doc);
-            doc.board = board;
-            return doc;
-        });
-    }
+            Object.keys(state).forEach(key => doc[key] = state[key]);
 
-    updatePlayers(players) {
-        localDB.upsert(this.props.gameID, (doc) => {
-            console.log('updatePlayers', doc);
-            doc.players = players;
             return doc;
         });
     }
@@ -135,11 +131,9 @@ class Board extends Component {
             }
 
             if (isNaN(x) || isNaN(y)) {
-                console.log('not a number?', x, y);
                 return false;
             }
 
-            console.log('canMove', x, y);
             if (x > board.length - 1 || y > board[x].length - 1) {
                 return false;
             }
@@ -202,7 +196,7 @@ class Board extends Component {
             state.winner = players[curPlayer - 1];
         }
 
-        this.setState(state);
+        this.updateState(state);
     }
 
     tryMove(x, y) {
@@ -215,7 +209,8 @@ class Board extends Component {
         }
 
         players[curPlayer - 1].move(x, y);
-        this.updatePlayers(players);
+
+        this.updateState({ players: players });
 
         return true;
     }
@@ -230,8 +225,7 @@ class Board extends Component {
         if (board[x][y] === 'w' && players[curPlayer - 1].useWall()) {
             const selectedWalls = this.getSelectedWalls();
             selectedWalls.map(w => (board[w.y][w.x] = 'W'));
-            //this.setState({ board: board });
-            this.updateBoard(board);
+            this.updateState({ board: board });
 
             return selectedWalls.length === 3;
         }
@@ -285,7 +279,12 @@ class Board extends Component {
     }
 
     render() {
-        const { curPlayer, winner, board } = this.state;
+        const { curPlayer, winner, board, playing } = this.state;
+
+        if (!playing) {
+            return <div>Loading game state</div>
+        }
+
         const playerMap = this.state.players.map((player, index) => `${player.x}:${player.y}`);
         const moves = this.getMovesFlatArray(curPlayer);
 
@@ -344,8 +343,6 @@ class Board extends Component {
 
             return classes.join(' ');
         };
-
-        // const getWallBuilderClass = (e, row, c) => [c, row % 2 ? styles.horz : styles.vert].join(' ');
 
         const setEnter = (row, col, n) => this.setState({ wallHover: { x: row, y: col, n: n } });
         const setLeave = (row, col, n) => {
