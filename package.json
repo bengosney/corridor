@@ -25,7 +25,10 @@
     "format": "prettier --write \"src/**/*.js\""
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "rules": {
+      "max-len": "off"
+    }
   },
   "browserslist": {
     "production": [

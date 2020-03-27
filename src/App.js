@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 import { PouchDB, useFind, useDB } from 'react-pouchdb';
 import './App.css';
 
-import PouchSync from './components/PouchSync';
 import Game from './components/Game';
 
 function Players() {
@@ -33,13 +32,7 @@ function Players() {
 function App() {
     return (
         <div className="App">
-            <PouchDB name="dbname">
-                <PouchSync remoteAddress={'http://user:pass@localhost:5984/dbname'}>
-                    <Suspense fallback="loading...">
-                        <Game />
-                    </Suspense>
-                </PouchSync>
-            </PouchDB>
+            <Game />
         </div>
     );
 }

@@ -4,7 +4,13 @@ import Player from './Player';
 import styles from '../Board.module.scss';
 import { GameType } from '../dataTypes';
 
+import localDB from '../db';
+
 class Board extends Component {
+    static defaultProps = {
+        gameID: 'gameID',
+    };
+
     constructor(props) {
         super(props);
 
@@ -54,23 +60,54 @@ class Board extends Component {
         }
 
         this.state = {
-            board: /*props.board ||*/ board,
-            curPlayer: props.curPlayer || 1,
+            board: board,
+            curPlayer: 1,
             players: playerObjects,
             jump: null,
             winner: null,
             walls: [],
             wallHover: null,
         };
+
+        const updateState = (doc) => {
+            console.log('updateState', doc);
+
+            const state = {
+                board: doc.board,
+            };
+
+            if (doc.players) {
+                state['players'] = doc.players.map(p => new Player({ ...p }));
+            }
+
+            this.setState(state);
+        };
+
+        localDB.get(this.props.gameID).then(updateState);
+
+        localDB.changes({ live: true, since: 'now', include_docs: true }).on('change', (change) => {
+            const { doc } = change;
+            console.log('doc change', doc);
+            if (doc._id === this.props.gameID) {
+                updateState(doc);
+            }
+        }).on('error', console.log.bind(console));
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        const { gameID = '' } = this.props;
-        const { state } = this;
+    updateBoard(board) {
+        localDB.upsert(this.props.gameID, (doc) => {
+            console.log('updateBoard', doc);
+            doc.board = board;
+            return doc;
+        });
+    }
 
-        state._id = gameID;
-
-        this.props.db.upsert(gameID, () => state);
+    updatePlayers(players) {
+        localDB.upsert(this.props.gameID, (doc) => {
+            console.log('updatePlayers', doc);
+            doc.players = players;
+            return doc;
+        });
     }
 
     getPlayer(player) {
@@ -97,6 +134,12 @@ class Board extends Component {
                 return false;
             }
 
+            if (isNaN(x) || isNaN(y)) {
+                console.log('not a number?', x, y);
+                return false;
+            }
+
+            console.log('canMove', x, y);
             if (x > board.length - 1 || y > board[x].length - 1) {
                 return false;
             }
@@ -130,7 +173,7 @@ class Board extends Component {
             return;
         }
 
-        const state = { players: players };
+        const state = {};
         const _player = this.getPlayer(curPlayer);
         const { x: fromx, y: fromy } = _player;
 
@@ -172,6 +215,7 @@ class Board extends Component {
         }
 
         players[curPlayer - 1].move(x, y);
+        this.updatePlayers(players);
 
         return true;
     }
@@ -186,7 +230,8 @@ class Board extends Component {
         if (board[x][y] === 'w' && players[curPlayer - 1].useWall()) {
             const selectedWalls = this.getSelectedWalls();
             selectedWalls.map(w => (board[w.y][w.x] = 'W'));
-            this.setState({ board: board });
+            //this.setState({ board: board });
+            this.updateBoard(board);
 
             return selectedWalls.length === 3;
         }
@@ -207,7 +252,8 @@ class Board extends Component {
                     if (board[y][x] !== 'W') {
                         selected.push({ x: x, y: y });
                     }
-                } catch (e) {}
+                } catch (e) {
+                }
             };
 
             add(x, y);
@@ -336,7 +382,7 @@ class Board extends Component {
         const won = winner ? <div>{`Player ${winner.id} is the Winner`}</div> : null;
 
         return (
-            <div className={ styles.boardInner}>
+            <div className={styles.boardInner}>
                 <p>Game ID: {this.props.gameID}</p>
                 <div className={styles.board}>{board.map((col, index) => getCol(col, index))}</div>
                 {won}

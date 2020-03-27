@@ -31,6 +31,10 @@ class Player {
 
         return false;
     }
+
+    toObject() {
+        return { ...this };
+    }
 }
 
 export default Player;
